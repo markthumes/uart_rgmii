@@ -1,0 +1,9 @@
+[] review fifo code
+[] create one github project for all cores
+[] add uart
+[] add uart processing logic
+[] add uart buffer
+[] add rgmii
+[] add rgmii processing logic
+[] add rgmii buffer
+[] add cdc fifo
