@@ -24,9 +24,9 @@ module tx_phy(
 	assign ETH_TXCLK = ddr_clk;
 
 
-	localparam TOTAL_BYTES = 92;
+	localparam TOTAL_BYTES = 10;
 	//In the format <inter-frame><preamble><sfd><data><efd>
-	reg [7:0] datagram [0:TOTAL_BYTES-1];
+	reg [7:0] datagram [0:TOTAL_BYTES];
 	initial $readmemh("icmp.hex", datagram);
 
 	//how do we want to send this data? msb first
@@ -39,7 +39,7 @@ module tx_phy(
 	initial state = STATE_IDLE;
 
 	//handle state machine
-	always @(posedge CLK48) begin
+	always @(posedge ETH_RXCLK) begin
 		if( state == STATE_IDLE ) begin
 			if( clk_1 ) state <= STATE_RUN;
 		end else begin
@@ -85,7 +85,7 @@ module tx_phy(
 			);
 `endif
 			oddr oddr(
-				.D0(current_byte[i+0]),
+				.D0(current_byte[i+0]), //Send LSB first
 				.D1(current_byte[i+4]),
 				.SCLK(ddr_clk),
 				.Q(eth_tx_delay[i])
@@ -112,23 +112,23 @@ module tx_phy(
 	);
 
 	clkdiv	#(10) clkdiv(
-		.i_clk(CLK48),
+		.i_clk(ETH_RXCLK),
 		.o_clk(clk_0)
 	);
 
 `ifndef SIM
-	clkdiv	#(48_000_00) clkdiv_1s(
-		.i_clk(CLK48),
+	clkdiv	#(125_000_00) clkdiv_1s(
+		.i_clk(ETH_RXCLK),
 		.o_clk(clk_1)
 	);
 `else
-	clkdiv	#(240) clkdiv_1s(
-		.i_clk(CLK48),
+	clkdiv	#(12500) clkdiv_1s(
+		.i_clk(ETH_RXCLK),
 		.o_clk(clk_1)
 	);
 `endif
 
-	always @(posedge CLK48) begin
+	always @(posedge ETH_RXCLK) begin
 		if( clk_0 ) flipper <= ~flipper;
 	end
 
