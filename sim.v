@@ -18,7 +18,7 @@ module top_tb(
 					NANOSECOND_PER_SECOND;
 	localparam PULSE_WIDTH_NS     = CLOCK_TIME_NS/2;
 	//total sim time (in timescale units)
-	localparam SIM_DURATION_NS    = 3*MILLISECOND;
+	localparam SIM_DURATION_NS    = 1*MILLISECOND;
 	//localparam SIM_DURATION_NS    = 1*SECOND;
 
 	//////////////////////////////////////////////////////////////////
