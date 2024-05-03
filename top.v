@@ -35,7 +35,6 @@ module top(
 
 	wire fifo_full; //Unused, fifo automatically limits when full and packets are dropped
 	wire fifo_empty;
-	wire uart_read;
 	wire [7:0] rgmii_to_uart_data;
 
 	//Add a CDC fifo to send data from rgmii to uart
@@ -50,29 +49,39 @@ module top(
 		//To UART
 		.rclk(CLK48),
 		.rdata(rgmii_to_uart_data),
-		.rinc(uart_read),
+		.rinc(uart_tx_done),
 		.rempty(fifo_empty),
 		.rrst_n(1'b1)
 	);
 
 
-	reg uart_tx_start = 0;
+	
+	wire uart_tx_done;
 	wire uart_tx_active;
-	wire tx_done;
+	reg [$bits("START")-1:0] transfer_state = "IDLE";
 	always @(posedge CLK48) begin
-		if( !uart_tx_active || tx_done ) uart_tx_start <= 1;
-		else  uart_tx_start <= 0;
+		if( transfer_state == "IDLE" ) begin
+			if( !fifo_empty ) transfer_state <= "START";
+		end else if( transfer_state == "START" ) begin
+			transfer_state <= "XFER";
+		end else if( transfer_state == "XFER") begin
+			if( uart_tx_done ) transfer_state <= "IDLE";
+		end
 	end
 
 	//data is valid when fifo is not empty, and 
+`ifdef SIM
+	localparam UART_SPEED = 4;
+`else
 	localparam UART_SPEED = 48_000_000 / 115200;
+`endif
 	UART_TX #(UART_SPEED) uart_tx(
 		.i_Clock(CLK48),
-		.i_TX_DV(!fifo_empty && uart_tx_start),
+		.i_TX_DV(transfer_state == "START"),
 		.i_TX_Byte(rgmii_to_uart_data),
 		.o_TX_Active(uart_tx_active),
 		.o_TX_Serial(UART_TX),
-		.o_TX_Done(tx_done)
+		.o_TX_Done(uart_tx_done)
 	);
 
 
