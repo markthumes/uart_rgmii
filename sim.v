@@ -57,7 +57,17 @@ module top_tb(
 	wire eth_tx_ctrl;
 	wire eth_tx_rstn;
 
+/*
 	tx_phy tx_phy(
+		.CLK48(fpga_clk),
+		.ETH_RXCLK(eth_rx_clk),
+
+		.ETH_TX(eth_tx_data),
+		.ETH_TXCLK(eth_tx_clk),
+		.ETH_TXCTRL(eth_tx_ctrl)
+	);
+*/
+	sender tx_phy(
 		.CLK48(fpga_clk),
 		.ETH_RXCLK(eth_rx_clk),
 
@@ -67,10 +77,10 @@ module top_tb(
 	);
 
 	
-	top top(
+	top i_top(
 		.CLK48(fpga_clk),
-		.ETH_RX_CLK(eth_tx_clk),
-		.ETH_RX_CTRL(eth_tx_ctrl),
+		.ETH_RXCLK(eth_tx_clk),
+		.ETH_RXCTRL(eth_tx_ctrl),
 		.ETH_RX(eth_tx_data)
 	);
 
